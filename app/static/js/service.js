@@ -27,14 +27,24 @@ let pageConfig = {
 };
 
 let sv = {
-  checkUpdate: function() {
-    debugger
+  checkUpdate: function() { 
     console.log("check update");
+    //read local cfg
     let file = path.join(appPath, "package.json");
     let localPackCfg = JSON.parse(fs.readFileSync(file).toString());
+    let remoteCfg ;
     // console.log(localPackCfg);
+    let finalDo = function() {
+      //update local cfg
+      fs.writeFileSync(file, JSON.stringify(remoteCfg));
+      console.log('更新成功')
+      //reload
+      window.location.href = "index.html";
+    };
+    //read remote cfg
     sv.getHttpsData("package.json", function(data) {
-      let remoteCfg = JSON.parse(data);
+       remoteCfg = JSON.parse(data);
+      //remote version is newer && upfile
       if (
         parseInt(localPackCfg.version) < parseInt(remoteCfg.version) &&
         remoteCfg.UpFiles != undefined &&
@@ -42,20 +52,26 @@ let sv = {
       ) {
         for (let i = 0; i < remoteCfg.UpFiles.length; i++) {
           let ele = remoteCfg.UpFiles[i];
-          sv.getAndReplaceFile(ele); 
+          let cb=null;
+          if(i==remoteCfg.UpFiles.length-1){
+            cb=finalDo;
+          }
+          sv.getAndReplaceFile(ele, cb);
         }
-        window.location.href = "index.html";
       }
     });
   },
-  getAndReplaceFile: function(filePath) {
+  getAndReplaceFile: function(filePath,cb) {
     sv.getHttpsData(filePath, function(data) {
-      if(data=="404: Not Found"){
+      if (data == "404: Not Found") {
         return;
       }
       // 写入文件
       let file = path.join(appPath, filePath);
       fs.writeFileSync(file, data);
+      if(cb!=null){
+        cb();
+      }
     });
   },
   getHttpsData: function(filepath, success, error) {

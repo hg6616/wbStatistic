@@ -45,8 +45,10 @@ let sv = {
     sv.getHttpsData("package.json", function(data) {
        remoteCfg = JSON.parse(data);
       //remote version is newer && upfile
+      let localVersion= parseFloat(localPackCfg.version.replace('0.','')) ;
+      let remoteVersion= parseFloat(remoteCfg.version.replace('0.','')) ;
       if (
-        parseInt(localPackCfg.version) < parseInt(remoteCfg.version) &&
+       localVersion < remoteVersion&&
         remoteCfg.UpFiles != undefined &&
         remoteCfg.UpFiles.length > 0
       ) {
@@ -59,7 +61,7 @@ let sv = {
           sv.getAndReplaceFile(ele, cb);
         }
       }
-      else if(parseInt(localPackCfg.version) >= parseInt(remoteCfg.version)){
+      else if(localVersion>=remoteVersion){
         console.log('newest version')
       }
        else if(  remoteCfg.UpFiles == undefined &&

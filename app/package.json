@@ -20,7 +20,6 @@
   "UpFiles": [
     "static/production/index.html",
     "static/js/app.js",
-    "static/js/service.js",
     "static/js/front.js"
   ]
 }

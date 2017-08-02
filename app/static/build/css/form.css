@@ -1,7 +1,13 @@
-.panel_toolbox{
+.panel_toolbox {
   min-width: initial;
 }
 
-.lh27{
-    line-height: 27px;
+.lh27 {
+  line-height: 27px;
+}
+
+html,
+body,
+* {
+  font-family: "Microsoft YaHei","Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif ;
 }

@@ -32,6 +32,7 @@ let sv = {
     fs.appendFile(txtfile, txt + " \n ", "utf8");
   },
   checkUpdate: function() {
+    return;
     console.log("check update!");
     //read local cfg
     let file = path.join(appPath, "package.json");
@@ -171,15 +172,15 @@ let sv = {
    select * from (  select * from (
     select butype text,(
       case
-       when butype='3G出账' then '1'
-      when butype='4G出账' then '2'
-      when butype='34G出账' then '3'
-      when butype='宽带出账' then '4'
-      when butype='通服收入' then '5'
-      when butype='34G后付语音' then '6'
-      when butype='宽带' then '7'
-      when butype='终端总量' then '8'
-      when butype='新终端' then '9'
+       when butype='3G出账' then '01'
+      when butype='4G出账' then '02'
+      when butype='34G出账' then '03'
+      when butype='宽带出账' then '04'
+      when butype='通服收入' then '05'
+      when butype='34G后付语音' then '06'
+      when butype='宽带' then '07'
+      when butype='终端总量' then '08'
+      when butype='新终端' then '09'
       when butype='老用户购机' then '10'
       when butype='裸机' then '11'
       end
@@ -189,15 +190,15 @@ let sv = {
   select * from (  select * from (
     select butype text,(
       case
-       when butype='3G出账' then '1'
-      when butype='4G出账' then '2'
-      when butype='34G出账' then '3'
-      when butype='宽带出账' then '4'
-      when butype='通服收入' then '5'
-      when butype='34G后付语音' then '6'
-      when butype='宽带' then '7'
-      when butype='终端总量' then '8'
-      when butype='新终端' then '9'
+        when butype='3G出账' then '01'
+      when butype='4G出账' then '02'
+      when butype='34G出账' then '03'
+      when butype='宽带出账' then '04'
+      when butype='通服收入' then '05'
+      when butype='34G后付语音' then '06'
+      when butype='宽带' then '07'
+      when butype='终端总量' then '08'
+      when butype='新终端' then '09'
       when butype='老用户购机' then '10'
       when butype='裸机' then '11'
       end
@@ -333,15 +334,15 @@ let sv = {
     param.dateEnd = parseInt(param.dateEnd);
     let res = {};
     let type2Sheet = {
-      "1": "3G出账",
-      "2": "4G出账",
-      "3": "34G出账",
-      "4": "宽带出账",
-      "5": "通服收入",
-      "6": "34G后付语音",
-      "7": "宽带",
-      "8": "终端总量",
-      "9": "新终端",
+      "01": "3G出账",
+      "02": "4G出账",
+      "03": "34G出账",
+      "04": "宽带出账",
+      "05": "通服收入",
+      "06": "34G后付语音",
+      "07": "宽带",
+      "08": "终端总量",
+      "09": "新终端",
       "10": "老用户购机",
       "11": "裸机"
     };
@@ -405,8 +406,9 @@ select area name,month,${param.area
         if (_.indexOf(param.star.checked, "6") > -1) {
           starIn = `and (star in (${instr}) or star in ('7','8'))`;
         }
+         
         sql += ` 
-    select name,month,${param.area.calType}(num) num ,2 orderby  from (
+    select name,month,${param.star.calType}(num) num ,2 orderby  from (
 select (case when star='1' then '1星'
  when star='2' then '2星'
  when star='3' then '3星'
@@ -498,10 +500,11 @@ select name,month,round(num,2) num,orderby from (${sql} )
         legend.push(newseries[i].name);
       }
       let table = [];
-      table.push([""].concat(x));
+      table.push([""].concat(x).concat([-100]));
+      
       for (let i = 0; i < newseries.length; i++) {
         let ele = newseries[i];
-        table.push([ele.name].concat(ele.data));
+        table.push([ele.name].concat(ele.data).concat([ele.orderby]));
       }
       //加上月均列
       if (table.length >= 2) {
@@ -513,9 +516,18 @@ select name,month,round(num,2) num,orderby from (${sql} )
           for (let p = 1; p < ele.length; p++) {
             sum += ele[p];
           }
-          table[l].push((sum / count).toFixed(2));
+          table[l].push(parseFloat((sum / count).toFixed(2)));
         }
       }
+       
+      let index1=table[0].length-2;
+      let index2=table[0].length-1;
+      
+      table=_.sortByOrder(table,[index1,index2],['asc','desc']);
+       for (let i = 0; i < table.length; i++) {
+          table[i].splice(index1,1);
+         
+       }
       res.chart = {
         x: x,
         legend: legend,
@@ -556,7 +568,8 @@ where 1=1
           sql += " union ";
         }
         let areaIn = getSqlInStr(param.area.checked);
-        sql += ` 
+        if(param.calType=='sum'){
+  sql += ` 
   select t1.area name, t1.num_jz jz, t2.num_mb mb,
          (t2.num_mb-t1.num_jz)/t1.num_jz*100 rate ,1 orderby  from (
 select area ,${param.calType}(num) num_jz  from t_jz 
@@ -573,6 +586,32 @@ where 1=1
    ) t2
   on t1.area=t2.area 
         `;
+        }
+        else{
+          //avg
+            sql += ` 
+  select t1.area name, t1.num_jz jz, t2.num_mb mb,
+         (t2.num_mb-t1.num_jz)/t1.num_jz*100 rate ,1 orderby  from (
+           select area,avg(num_jz) num_jz from (
+select area,month ,sum(num) num_jz  from t_jz 
+where 1=1
+    and area in (${areaIn})
+   group by area,month
+   ) group by area
+   ) t1
+inner join
+(
+  select area,avg(num_mb) num_mb from (
+select area ,month,sum(num) num_mb  from t_mb
+where 1=1
+   and area in (${areaIn})
+   group by area,month)
+   group by area
+   ) t2
+  on t1.area=t2.area 
+        `;
+        }
+      
       }
       //star
       if (param.star.checked.length > 0) {
@@ -584,7 +623,8 @@ where 1=1
         if (_.indexOf(param.star.checked, "6") > -1) {
           starIn = `and (star in (${instr}) or star in ('7','8'))`;
         }
-        sql += ` 
+        if(param.calType=='sum'){
+ sql += ` 
   select t1.star2 name, t1.num_jz  jz, t2.num_mb  mb,
          (t2.num_mb-t1.num_jz)/t1.num_jz*100  rate ,2 orderby  from (
 select star2 ,${param.calType}(num) num_jz  from t_jz 
@@ -601,6 +641,32 @@ where 1=1
    ) t2
   on t1.star2=t2.star2 
         `;
+        }
+        else{
+          //avg
+ sql += ` 
+  select t1.star2 name, t1.num_jz  jz, t2.num_mb  mb,
+         (t2.num_mb-t1.num_jz)/t1.num_jz*100  rate ,2 orderby  from (
+           select star2,avg(num_jz) num_jz from (
+select star2 ,month,sum(num) num_jz  from t_jz 
+where 1=1
+     ${starIn}
+   group by star2,month)
+   group by star2
+   ) t1
+inner join
+(
+   select star2,avg(num_mb) num_mb from (
+select star2 ,month,sum(num) num_mb  from t_mb
+where 1=1
+    ${starIn}
+    group by star2,month)
+   group by star2
+   ) t2
+  on t1.star2=t2.star2 
+        `;
+        }
+       
       }
       //center
       if (param.center.checked) {
@@ -609,27 +675,27 @@ where 1=1
         }
 
         sql += ` 
-  select t1.code name, t1.num_jz  jz, t2.num_mb  mb,
+  select t1.store name, t1.num_jz  jz, t2.num_mb  mb,
          (t2.num_mb-t1.num_jz)/t1.num_jz*100  rate ,3 orderby  from (
-select code ,${param.calType}(num) num_jz  from t_jz 
+select store ,${param.calType}(num) num_jz  from t_jz 
 where 1=1
     and store='营业中心' 
-   group by code
+   group by store
    ) t1
 inner join
 (
-select code ,${param.calType}(num) num_mb  from t_mb
+select store ,${param.calType}(num) num_mb  from t_mb
 where 1=1
    and store='营业中心' 
-   group by code
+   group by store
    ) t2
-  on t1.code=t2.code 
+  on t1.store=t2.store 
         `;
       }
 
       let sourceSql = `
         with t_jz as ( 
-SELECT t.*,
+SELECT store,code,area,star,month,cast(num as double) num,
 (case when star='1' then '1星'
  when star='2' then '2星'
  when star='3' then '3星'
@@ -644,7 +710,8 @@ WHERE 1 = 1
   and num!=0
     ),
 t_mb as ( 
-SELECT t.* ,(case when star='1' then '1星'
+SELECT store,code,area,star,month ,cast(num as double) num
+,(case when star='1' then '1星'
  when star='2' then '2星'
  when star='3' then '3星'
  when star='4' then '4星'
@@ -662,7 +729,7 @@ WHERE 1 = 1
       sql = `
       ${sourceSql} 
 select name,round(jz,2) jz,round(mb,2) mb,round(rate,2) rate ,orderby from (${sql} ) 
-order by orderby,rate
+order by orderby asc,rate desc
 `;
 
       return sql;
@@ -731,6 +798,7 @@ order by orderby,rate
     if (sql == "") {
       return;
     }
+   // console.log(sql);
     dbWeb.transaction(function(context) {
       context.executeSql(
         sql,
@@ -739,7 +807,7 @@ order by orderby,rate
           cbx(result);
         },
         function(tx, error) {
-          alert("查询数据出错");
+        //  alert("查询数据出错");
           console.log(sql);
           console.log(error);
         }

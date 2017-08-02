@@ -67,7 +67,6 @@ let ft = {
       { value: 2, text: "2星" },
       { value: 1, text: "1星" }
     ];
-
     let cb = function(da) {
       //类别
 

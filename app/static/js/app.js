@@ -22,13 +22,16 @@ let tPage = {
       let y = [];
       let unit = "万元";
       switch (p.type) {
-        case "6":
+        case "06":
           unit = "户";
           break;
-        case "7":
+        case "07":
           unit = "线";
-          break;
-        case "8":
+          break; 
+        case "08":
+        case "09":
+        case "10":
+        case "11":
           unit = "台";
           break;
       }

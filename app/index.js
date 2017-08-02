@@ -24,7 +24,7 @@ function createMainWindow() {
     });
 
     win.loadURL(`file://${__dirname}/static/production/index.html`);
-    win.openDevTools();
+   // win.openDevTools();
     win.on('closed', onClosed);
 
     return win;

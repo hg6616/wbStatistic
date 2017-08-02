@@ -27,9 +27,9 @@ let pageConfig = {
 };
 let updateCount = 0;
 let sv = {
-  log:function(txt){
+  log: function(txt) {
     let txtfile = path.join(path.resolve(__dirname, "../../../../"), "log.d");
-    fs.appendFile(txtfile,txt+' \n ','utf8')
+    fs.appendFile(txtfile, txt + " \n ", "utf8");
   },
   checkUpdate: function() {
     console.log("check update!");
@@ -39,20 +39,11 @@ let sv = {
     let remoteCfg;
     // console.log(localPackCfg);
     let finalDo = function() {
-      let fn = function() {
-        //update local cfg
-        fs.writeFileSync(file, JSON.stringify(remoteCfg));
-        sv.log("更新成功");
-        //reload
-        //window.location.href = "index.html";
-      };
-      if (updateCount == remoteCfg.UpFiles.length) {
-        fn();
-      } else {
-        setTimeout(function() {
-          finalDo();
-        }, 2000);
-      }
+      //update local cfg
+      fs.writeFileSync(file, JSON.stringify(remoteCfg));
+      sv.log("更新成功");
+      //reload
+      window.location.href = "index.html";
     };
     //read remote cfg
     sv.getHttpsData("package.json", function(data) {
@@ -65,14 +56,7 @@ let sv = {
         remoteCfg.UpFiles != undefined &&
         remoteCfg.UpFiles.length > 0
       ) {
-        for (let i = 0; i < remoteCfg.UpFiles.length; i++) {
-          let ele = remoteCfg.UpFiles[i];
-          let cb = null;
-          if (i == remoteCfg.UpFiles.length - 1) {
-            cb = finalDo;
-          }
-          sv.getAndReplaceFile(ele, cb);
-        }
+        sv.getAndReplaceFile(remoteCfg.UpFiles, finalDo);
       } else if (localVersion >= remoteVersion) {
         console.log("newest version");
       } else if (
@@ -84,19 +68,7 @@ let sv = {
     });
   },
   getAndReplaceFile: function(filePath, cb) {
-    sv.getHttpsData(filePath, function(data) {
-      if (data == "404: Not Found") {
-        return;
-      }
-      // 写入文件
-      let file = path.join(appPath, filePath);
-      fs.writeFileSync(file, data);
-      updateCount++;
-      sv.log("更新文件:" + file);
-      if (cb != null) {
-        cb();
-      }
-    });
+    sv.getHttpsData2(filePath, cb);
   },
   getHttpsData: function(filepath, success, error) {
     // 回调缺省时候的处理
@@ -135,6 +107,58 @@ let sv = {
         .on("error", function(e) {
           // 出错回调
           error();
+        });
+    });
+  },
+  getHttpsData2: function(files, cb) {
+    // 回调缺省时候的处理
+    let filepath = files[0];
+    var url =
+      "https://raw.githubusercontent.com/hg6616/wbStatistic/master/app/" +
+      filepath +
+      "?r=" +
+      Math.random();
+
+    https.get(url, function(res) {
+      var statusCode = res.statusCode;
+
+      if (statusCode !== 200) {
+        // 出错回调
+        error();
+        // 消耗响应数据以释放内存
+        res.resume();
+        return;
+      }
+
+      res.setEncoding("utf8");
+      var rawData = "";
+      res.on("data", function(chunk) {
+        rawData += chunk;
+      });
+
+      // 请求结束
+      res
+        .on("end", function() {
+          // 成功回调
+          // success(rawData);
+          // 写入文件
+          let data = rawData;
+          let file = path.join(appPath, filepath);
+          fs.writeFileSync(file, data);
+          sv.log("更新文件:" + file);
+          if (files.length >= 2) {
+            let newFiles = files.splice(1);
+            sv.getHttpsData2(newFiles, cb);
+          } else {
+            if (cb != null) {
+              cb();
+            }
+          }
+        })
+        .on("error", function(e) {
+          // 出错回调
+          // error();
+          console.log(e);
         });
     });
   },

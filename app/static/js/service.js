@@ -239,6 +239,7 @@ let sv = {
   and month between ${param.dateSt} and  ${param.dateEnd} 
   and butype='${sheetName}'
   and code in (${storeIn})
+   and num!=0
 `;
       }
       //area
@@ -253,6 +254,7 @@ select area name,month,${param.area
   and month between ${param.dateSt} and  ${param.dateEnd} 
   and butype='${sheetName}'
   and area in (${areaIn})
+   and num!=0
   group by area,month
 `;
       }
@@ -277,6 +279,7 @@ select (case when star='1' then '1星'
 ) name,month,num  from  ${tbName}  where 1=1
   and month between ${param.dateSt} and  ${param.dateEnd} 
   and butype='${sheetName}'
+   and num!=0
    ${starIn}
    )
   group by name,month
@@ -293,6 +296,7 @@ select (case when star='1' then '1星'
     and month between ${param.dateSt} and  ${param.dateEnd}
     and butype='${sheetName}'
     and store='营业中心' 
+     and num!=0
   `;
         } else {
           sql += `
@@ -301,6 +305,7 @@ select (case when star='1' then '1星'
   select store,month, num from  ${tbName}  where 1=1
     and month between ${param.dateSt} and  ${param.dateEnd}
     and butype='${sheetName}'
+     and num!=0
     and store='营业中心' ) tb1
    inner join      (
      select month,count(0) c from (
@@ -309,6 +314,7 @@ select (case when star='1' then '1星'
     and butype='${sheetName}'
      and code!='undefined'
       and store!='营业中心' 
+       and num!=0
   )  group by month
   ) tb2
 on tb1.month=tb2.month
@@ -498,6 +504,7 @@ FROM  ${tbName} t
 WHERE 1 = 1
  and  butype='${sheetName}'
   and month between ${param.dateStStandard} and  ${param.dateEndStandard} 
+  and num!=0
     ),
 t_mb as ( 
 SELECT t.* ,(case when star='1' then '1星'
@@ -511,6 +518,7 @@ FROM  ${tbName} t
 WHERE 1 = 1
  and  butype='${sheetName}'
   and month between ${param.dateStTarget} and  ${param.dateEndTarget} 
+   and num!=0
     )
       `;
 

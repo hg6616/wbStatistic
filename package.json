@@ -4,9 +4,11 @@
   "description": "A minimal Electron application",
   "main": "app/index.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "dir":"electron-builder --win --ia32 --dir",
+    "pack":"electron-builder --win --ia32"
   },
-  "repository": "https://github.com/electron/electron-quick-start",
+  "repository": "https://github.com/hg6616/wbStatistic",
   "keywords": [
     "Electron",
     "quick",

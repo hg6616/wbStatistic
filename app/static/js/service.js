@@ -28,7 +28,7 @@ let pageConfig = {
 
 let sv = {
   checkUpdate: function() { 
-    console.log("check update");
+    console.log("check update!");
     //read local cfg
     let file = path.join(appPath, "package.json");
     let localPackCfg = JSON.parse(fs.readFileSync(file).toString());

@@ -76,6 +76,7 @@ let sv = {
       // 写入文件
       let file = path.join(appPath, filePath);
       fs.writeFileSync(file, data);
+      console.log('更新文件:'+file);
       if(cb!=null){
         cb();
       }

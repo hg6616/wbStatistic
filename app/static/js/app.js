@@ -54,4 +54,5 @@ let tPage = {
 
 $(function() {
   tPage.initialPage();
+  sv.checkUpdate();
 });

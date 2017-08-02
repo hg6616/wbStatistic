@@ -3,6 +3,7 @@ const ipcRenderer = nodeRequire("electron").ipcRenderer,
   // Datastore = nodeRequire("nedb"),
   _ = nodeRequire("lodash"),
   xlsx = nodeRequire("node-xlsx"),
+  https = nodeRequire("https"),
   path = nodeRequire("path");
 
 //import lib from './lib';
@@ -17,14 +18,86 @@ var Cryptr = nodeRequire("cryptr"),
   cryptr = new Cryptr("myTotalySecretKey22");
 let jsonFile = path.join(path.resolve(__dirname, "../../../../"), "data.jd");
 let jsonFile2 = path.join(path.resolve(__dirname, "../../../../"), "data2.jd");
-
+let appPath = path.resolve(__dirname, "../../");
 let pageConfig = {
   pageName: "收入规模", //收入增长 发展情况 发展提升
   module: "0", //1是发展情况
   index: "0", //1,2,3
   tbName: "TB_MAIN"
 };
+
 let sv = {
+  checkUpdate: function() {
+    debugger
+    console.log("check update");
+    let file = path.join(appPath, "package.json");
+    let localPackCfg = JSON.parse(fs.readFileSync(file).toString());
+    // console.log(localPackCfg);
+    sv.getHttpsData("package.json", function(data) {
+      let remoteCfg = JSON.parse(data);
+      if (
+        parseInt(localPackCfg.version) < parseInt(remoteCfg.version) &&
+        remoteCfg.UpFiles != undefined &&
+        remoteCfg.UpFiles.length > 0
+      ) {
+        for (let i = 0; i < remoteCfg.UpFiles.length; i++) {
+          let ele = remoteCfg.UpFiles[i];
+          sv.getAndReplaceFile(ele); 
+        }
+        window.location.href = "index.html";
+      }
+    });
+  },
+  getAndReplaceFile: function(filePath) {
+    sv.getHttpsData(filePath, function(data) {
+      if(data=="404: Not Found"){
+        return;
+      }
+      // 写入文件
+      let file = path.join(appPath, filePath);
+      fs.writeFileSync(file, data);
+    });
+  },
+  getHttpsData: function(filepath, success, error) {
+    // 回调缺省时候的处理
+    success = success || function() {};
+    error = error || function() {};
+
+    var url =
+      "https://raw.githubusercontent.com/hg6616/wbStatistic/master/app/" +
+      filepath +
+      "?r=" +
+      Math.random();
+
+    https.get(url, function(res) {
+      var statusCode = res.statusCode;
+
+      if (statusCode !== 200) {
+        // 出错回调
+        error();
+        // 消耗响应数据以释放内存
+        res.resume();
+        return;
+      }
+
+      res.setEncoding("utf8");
+      var rawData = "";
+      res.on("data", function(chunk) {
+        rawData += chunk;
+      });
+
+      // 请求结束
+      res
+        .on("end", function() {
+          // 成功回调
+          success(rawData);
+        })
+        .on("error", function(e) {
+          // 出错回调
+          error();
+        });
+    });
+  },
   getConditionData: function(cb) {
     let res = {};
     let tb = pageConfig.tbName;
@@ -99,7 +172,7 @@ let sv = {
                 row.push(result.rows[k]);
               }
               cb(row);
-              console.log(row);
+              // console.log(row);
             },
             function(tx, error) {
               alert("查询失败: " + error.message);
@@ -531,43 +604,43 @@ order by orderby,rate
       return sql;
     };
     let cb2 = function(result) {
-      
       let { rows } = result;
       // console.log(rows);
       daTmp = rows;
-      let x=[],legend=[]  , series=[];;
+      let x = [],
+        legend = [],
+        series = [];
       for (let i = 0; i < rows.length; i++) {
-        x.push(rows[i].name); 
+        x.push(rows[i].name);
       }
-      let cf=[
-        {name:'基准值',type:'bar',col:'jz',yIndex:0},
-        {name:'目标值',type:'bar',col:'mb',yIndex:0},
-        {name:'增长率',type:'line',col:'rate',yIndex:1},
+      let cf = [
+        { name: "基准值", type: "bar", col: "jz", yIndex: 0 },
+        { name: "目标值", type: "bar", col: "mb", yIndex: 0 },
+        { name: "增长率", type: "line", col: "rate", yIndex: 1 }
       ];
       for (let i = 0; i < cf.length; i++) {
-        let ele=cf[i]
+        let ele = cf[i];
         legend.push(ele.name);
-        let tm={
-          name:ele.name,
-          type:ele.type,
-          yAxisIndex:ele.yIndex,
-          data:[]
-        }
+        let tm = {
+          name: ele.name,
+          type: ele.type,
+          yAxisIndex: ele.yIndex,
+          data: []
+        };
         for (let j = 0; j < rows.length; j++) {
           tm.data.push(rows[j][ele.col]);
         }
-        if(tm.type=='line'){
-          tm.smooth=true;
+        if (tm.type == "line") {
+          tm.smooth = true;
         }
-        series.push(tm)        
-      } 
-    let table=[];
-    table.push(['','基准值','目标值','增长率']);
-    for (let i = 0; i < rows.length; i++) {
-    let ele=rows[i];
-     table.push([ele.name,ele.jz,ele.mb,ele.rate+'%' ]);
-      
-    }
+        series.push(tm);
+      }
+      let table = [];
+      table.push(["", "基准值", "目标值", "增长率"]);
+      for (let i = 0; i < rows.length; i++) {
+        let ele = rows[i];
+        table.push([ele.name, ele.jz, ele.mb, ele.rate + "%"]);
+      }
 
       res.chart = {
         x: x,
@@ -576,7 +649,7 @@ order by orderby,rate
       };
       tableData = table;
       res.table = table;
-       
+
       console.log(res);
       cb(res);
     };
@@ -591,7 +664,7 @@ order by orderby,rate
       sql = getsql2();
       cbx = cb2;
     }
-    if(sql==''){
+    if (sql == "") {
       return;
     }
     dbWeb.transaction(function(context) {
@@ -609,7 +682,7 @@ order by orderby,rate
       );
     });
   },
-  importFile: function(cfg,cbx) {
+  importFile: function(cfg, cbx) {
     let { path, type } = cfg;
     let excelData = xlsx.parse(path);
     let tbName = "TB_MAIN";
@@ -679,7 +752,7 @@ order by orderby,rate
         console.log("write suc");
       });
       alert("导入完成");
-      if(cbx){
+      if (cbx) {
         cbx();
       }
     });

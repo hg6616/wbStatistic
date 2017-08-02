@@ -591,6 +591,9 @@ order by orderby,rate
       sql = getsql2();
       cbx = cb2;
     }
+    if(sql==''){
+      return;
+    }
     dbWeb.transaction(function(context) {
       context.executeSql(
         sql,
@@ -606,7 +609,7 @@ order by orderby,rate
       );
     });
   },
-  importFile: function(cfg) {
+  importFile: function(cfg,cbx) {
     let { path, type } = cfg;
     let excelData = xlsx.parse(path);
     let tbName = "TB_MAIN";
@@ -676,6 +679,9 @@ order by orderby,rate
         console.log("write suc");
       });
       alert("导入完成");
+      if(cbx){
+        cbx();
+      }
     });
   },
   exportData: function() {

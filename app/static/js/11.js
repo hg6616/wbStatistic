@@ -132,3 +132,18 @@ dbWeb.transaction(function(context) {
     }
   );
 });
+
+dbWeb.transaction(function(context) {
+  context.executeSql(
+    `
+  delete from tb_main
+    `,
+    [],
+    function(tx, result) {
+      console.log(result.rows) 
+    },
+    function(tx, error) {
+      alert("查询失败: " + error.message);
+    }
+  );
+});

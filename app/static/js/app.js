@@ -7,10 +7,11 @@ let tPage = {
     });
   },
   initialPage: function() {
+      ft.bindEvent();
     sv.loadData2Websql(function() {
       tPage.setQueryCondition();
     });
-    ft.bindEvent();
+  
   },
   queryData: function() {
     let param = ft.getQueryParam();

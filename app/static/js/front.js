@@ -134,7 +134,9 @@ let ft = {
       let path = data[0],
         type = importType;
       console.log(path);
-      sv.importFile({ path, type });
+      sv.importFile({ path, type }, function() {
+        tPage.setQueryCondition();
+      });
     });
 
     $("#btnExport").click(function() {
@@ -160,8 +162,11 @@ let ft = {
         pageConfig.tbName = "TB_MAIN2";
         typeData = ft.conditionData.type2;
       }
-      let html = ft.getRadionHtml(typeData, "type");
-      $("#buType").html(html);
+      if (typeData != undefined && typeData.length > 0) {
+        let html = ft.getRadionHtml(typeData, "type");
+        $("#buType").html(html);
+      }
+
       switch (index) {
         case "0":
         case "2": //都是规模
@@ -187,7 +192,9 @@ let ft = {
         $("#divMain").removeClass("hidden");
         $("#divMainImport").addClass("hidden");
       }
-       tPage.queryData();
+      if (index != "4") {
+        tPage.queryData();
+      }
     });
   },
   getQueryParam: function() {
@@ -218,7 +225,7 @@ let ft = {
       tbName: pageConfig.tbName,
       calType: $("#divCalType").find(":checked").val()
     };
-    paramGlobal=param;
+    paramGlobal = param;
     console.log("查询参数");
     console.log(param);
     if (
@@ -514,10 +521,10 @@ function iniChart(cfg) {
   if ($("#mainb").length) {
     var echartBar = echarts.init(document.getElementById("mainb"), theme);
     var y = [
-        {
-          type: "value"
-        }
-      ];
+      {
+        type: "value"
+      }
+    ];
     if (cfg.y != undefined) {
       y = cfg.y;
     }

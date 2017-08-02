@@ -25,52 +25,65 @@ let pageConfig = {
   index: "0", //1,2,3
   tbName: "TB_MAIN"
 };
-
+let updateCount = 0;
 let sv = {
-  checkUpdate: function() { 
+  log:function(txt){
+    let txtfile = path.join(path.resolve(__dirname, "../../../../"), "log.d");
+    fs.appendFile(txtfile,txt+' \n ','utf8')
+  },
+  checkUpdate: function() {
     console.log("check update!");
     //read local cfg
     let file = path.join(appPath, "package.json");
     let localPackCfg = JSON.parse(fs.readFileSync(file).toString());
-    let remoteCfg ;
+    let remoteCfg;
     // console.log(localPackCfg);
     let finalDo = function() {
-      //update local cfg
-      fs.writeFileSync(file, JSON.stringify(remoteCfg));
-      console.log('更新成功')
-      //reload
-      window.location.href = "index.html";
+      let fn = function() {
+        //update local cfg
+        fs.writeFileSync(file, JSON.stringify(remoteCfg));
+        sv.log("更新成功");
+        //reload
+        window.location.href = "index.html";
+      };
+      if (updateCount == remoteCfg.UpFiles.length) {
+        fn();
+      } else {
+        setTimeout(function() {
+          finalDo();
+        }, 2000);
+      }
     };
     //read remote cfg
     sv.getHttpsData("package.json", function(data) {
-       remoteCfg = JSON.parse(data);
+      remoteCfg = JSON.parse(data);
       //remote version is newer && upfile
-      let localVersion= parseFloat(localPackCfg.version.replace('0.','')) ;
-      let remoteVersion= parseFloat(remoteCfg.version.replace('0.','')) ;
+      let localVersion = parseFloat(localPackCfg.version.replace("0.", ""));
+      let remoteVersion = parseFloat(remoteCfg.version.replace("0.", ""));
       if (
-       localVersion < remoteVersion&&
+        localVersion < remoteVersion &&
         remoteCfg.UpFiles != undefined &&
         remoteCfg.UpFiles.length > 0
       ) {
         for (let i = 0; i < remoteCfg.UpFiles.length; i++) {
           let ele = remoteCfg.UpFiles[i];
-          let cb=null;
-          if(i==remoteCfg.UpFiles.length-1){
-            cb=finalDo;
+          let cb = null;
+          if (i == remoteCfg.UpFiles.length - 1) {
+            cb = finalDo;
           }
           sv.getAndReplaceFile(ele, cb);
         }
-      }
-      else if(localVersion>=remoteVersion){
-        console.log('newest version')
-      }
-       else if(  remoteCfg.UpFiles == undefined &&
-        remoteCfg.UpFiles.length == 0){
-        console.log('no update files')
+      } else if (localVersion >= remoteVersion) {
+        console.log("newest version");
+      } else if (
+        remoteCfg.UpFiles == undefined &&
+        remoteCfg.UpFiles.length == 0
+      ) {
+        console.log("no update files");
       }
     });
   },
-  getAndReplaceFile: function(filePath,cb) {
+  getAndReplaceFile: function(filePath, cb) {
     sv.getHttpsData(filePath, function(data) {
       if (data == "404: Not Found") {
         return;
@@ -78,8 +91,9 @@ let sv = {
       // 写入文件
       let file = path.join(appPath, filePath);
       fs.writeFileSync(file, data);
-      console.log('更新文件:'+file);
-      if(cb!=null){
+      updateCount++;
+      sv.log("更新文件:" + file);
+      if (cb != null) {
         cb();
       }
     });

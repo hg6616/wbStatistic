@@ -44,7 +44,7 @@ let sv = {
         fs.writeFileSync(file, JSON.stringify(remoteCfg));
         sv.log("更新成功");
         //reload
-        window.location.href = "index.html";
+        //window.location.href = "index.html";
       };
       if (updateCount == remoteCfg.UpFiles.length) {
         fn();

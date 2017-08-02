@@ -144,6 +144,11 @@ dbWeb.transaction(function(context) {
     },
     function(tx, error) {
       alert("查询失败: " + error.message);
+
+    //    "static/production/index.html",
+    // "static/js/app.js",
+    // "static/js/service.js",
+    // "static/js/front.js"
     }
   );
 });

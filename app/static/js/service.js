@@ -59,6 +59,13 @@ let sv = {
           sv.getAndReplaceFile(ele, cb);
         }
       }
+      else if(parseInt(localPackCfg.version) >= parseInt(remoteCfg.version)){
+        console.log('newest version')
+      }
+       else if(  remoteCfg.UpFiles == undefined &&
+        remoteCfg.UpFiles.length == 0){
+        console.log('no update files')
+      }
     });
   },
   getAndReplaceFile: function(filePath,cb) {

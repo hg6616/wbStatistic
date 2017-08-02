@@ -1,7 +1,7 @@
 {
   "name": "wobao",
   "productName": "沃宝",
-  "version": "1",
+  "version": "2",
   "description": "static",
   "license": "MIT",
   "repository": "static",
@@ -18,9 +18,6 @@
   },
   "devDependencies": { "devtron": "^1.1.0", "electron": "^1.3.5" },
   "UpFiles": [
-    "static/production/index.html",
-    "static/js/app.js",
-    "static/js/service.js",
-    "static/js/front.js"
+    "static/js/service.js"
   ]
 }

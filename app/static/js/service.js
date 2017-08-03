@@ -377,7 +377,7 @@ let sv = {
   and month between ${param.dateSt} and  ${param.dateEnd} 
   and butype='${sheetName}'
   and code in (${storeIn})
-   and num!=0
+  
 `;
       }
       //area

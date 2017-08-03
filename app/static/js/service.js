@@ -509,12 +509,16 @@ select name,month,round(num,2) num,orderby from (${sql} )
       //加上月均列
       if (table.length >= 2) {
         table[0].push("月均");
+         
         for (let l = 1; l < table.length; l++) {
           let ele = table[l];
-          let count = ele.length - 1;
+          let count = 0;
           let sum = 0;
-          for (let p = 1; p < ele.length; p++) {
+          for (let p = 1; p < ele.length-1; p++) {
             sum += ele[p];
+            if(ele[p]!=0){
+              count++;
+            }
           }
           table[l].push(parseFloat((sum / count).toFixed(2)));
         }
@@ -522,7 +526,7 @@ select name,month,round(num,2) num,orderby from (${sql} )
        
       let index1=table[0].length-2;
       let index2=table[0].length-1;
-      
+      //排序
       table=_.sortByOrder(table,[index1,index2],['asc','desc']);
        for (let i = 0; i < table.length; i++) {
           table[i].splice(index1,1);
